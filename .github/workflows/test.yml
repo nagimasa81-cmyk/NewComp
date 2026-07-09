@@ -1,0 +1,10 @@
+
+- name: Debug Files
+  shell: cmd
+  run: |
+    echo Current Directory:
+    cd
+
+    echo.
+    echo Python files:
+    dir /s *.py
