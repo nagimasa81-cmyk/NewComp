@@ -1,5 +1,5 @@
 
-name: Build Launcher
+name: Build Complaint Service Hub Launcher
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -20,17 +20,48 @@ jobs:
         with:
           python-version: "3.13"
 
-
-- name: Install dependencies
-  shell: cmd
-  run: |
-    python -m pip install --upgrade pip
-    if exist requirements.txt pip install -r requirements.txt
-
-
-      - name: Run build bat
+      - name: Upgrade pip
         shell: cmd
-        run: build.bat
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Install project dependencies
+        shell: cmd
+        run: |
+          if exist requirements.txt pip install -r requirements.txt
+
+      - name: Install PyInstaller
+        shell: cmd
+        run: |
+          python -m pip install --upgrade pyinstaller
+
+      - name: Build application
+        shell: cmd
+        run: |
+          pyinstaller --noconfirm --onedir --windowed --name Complaint_Service_Hub_Launcher launcher.py
+
+      - name: Copy application files
+        shell: cmd
+        run: |
+          xcopy /E /I /Y config dist\Complaint_Service_Hub_Launcher\config
+          xcopy /E /I /Y masters dist\Complaint_Service_Hub_Launcher\masters
+          xcopy /E /I /Y templates dist\Complaint_Service_Hub_Launcher\templates
+          xcopy /E /I /Y profiles dist\Complaint_Service_Hub_Launcher\profiles
+
+          if exist resources (
+            xcopy /E /I /Y resources dist\Complaint_Service_Hub_Launcher\resources
+          )
+
+          copy /Y hub_app.py dist\Complaint_Service_Hub_Launcher\
+          copy /Y launcher.py dist\Complaint_Service_Hub_Launcher\
+          copy /Y main.py dist\Complaint_Service_Hub_Launcher\
+          copy /Y manifest.json dist\Complaint_Service_Hub_Launcher\
+          copy /Y app_version.json dist\Complaint_Service_Hub_Launcher\
+
+          mkdir dist\Complaint_Service_Hub_Launcher\logs 2>nul
+          mkdir dist\Complaint_Service_Hub_Launcher\records 2>nul
+          mkdir dist\Complaint_Service_Hub_Launcher\updates 2>nul
+          mkdir dist\Complaint_Service_Hub_Launcher\backups 2>nul
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
